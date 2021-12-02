@@ -1,14 +1,12 @@
-: open-input ( addr u -- )  r/o open-file  ;
-
 : split { buffer length -- p1 p2 .. pn n }
-buffer
-1
-length 0 DO
-    buffer I + C@ BL = IF 
-        1+
-        buffer I + 1+ SWAP
-    THEN
-LOOP
+    buffer
+    1
+    length 0 DO
+        buffer I + C@ BL = IF 
+            1+
+            buffer I + 1+ SWAP
+        THEN
+    LOOP
 ;
 
 : starts-with { haystack_addr haystack_length needle_addr needle_length }

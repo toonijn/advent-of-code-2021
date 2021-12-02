@@ -45,6 +45,9 @@ INCLUDE ../util.fth
 ;
 
 0 ( number of items in list )
-256 ' process-line read-lines 3 sliding-sum count-increasing . CR
+256 ' process-line read-lines
+count-increasing ."  1: " . CR
+count-increasing-3 ."  2: " . CR
+3 sliding-sum count-increasing ." 2': " . CR
 
 bye
