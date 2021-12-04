@@ -1,7 +1,7 @@
 INCLUDE ../util.fth
 
 : process-line { buffer length }
-    buffer length split
+    buffer length split-simple
     assert( 2 = )
     DUP length SWAP buffer - - parse-number
     { instr amount }
