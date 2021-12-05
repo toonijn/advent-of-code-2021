@@ -16,7 +16,7 @@ line-buffer-size 2 + ALLOCATE THROW CONSTANT line-buffer
 : DROP-N 0 DO DROP LOOP ;
 
 : process-numbers { addr length }
-    44 ( , ) addr length SPLIT { number-count }
+    addr length 44 ( , ) SPLIT { number-count }
     number-count CELLS ALLOCATE THROW { numbers }
     number-count 0 DO
         number-count I - 2 * 1 - 2PICK parse-number numbers I CELLS + !

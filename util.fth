@@ -9,7 +9,7 @@
     LOOP
 ;
 
-: split { chr buffer length -- p1 n1 p2 n2 .. pi ni i }
+: split { buffer length chr -- p1 n1 p2 n2 .. pi ni i }
     buffer
     1
     length 0 DO
