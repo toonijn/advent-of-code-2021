@@ -7,17 +7,17 @@ fish-counts fish-counts-size CELLS 0 FILL
 : process-line
     44 ( , ) split
     0 DO
-        parse-number CELLS fish-counts + DUP @ 1 + SWAP !
+        parse-number CELLS fish-counts + 1 SWAP +!
     LOOP
 ;
 
 : next-day
-    fish-counts @ { procreate }
+    fish-counts @ ( procreate )
     fish-counts-size 1 DO
         fish-counts I CELLS + DUP @ SWAP 1 CELLS - !
     LOOP
-    fish-counts 8 CELLS + DUP @ procreate + SWAP !
-    fish-counts 6 CELLS + DUP @ procreate + SWAP !
+    DUP fish-counts 8 CELLS + +!
+    fish-counts 6 CELLS + +!
 ;
 
 : count-fishes
