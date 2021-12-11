@@ -50,3 +50,9 @@
         mid u n1 - 1 - less-than RECURSE
     THEN
 ;
+
+: clone { addr addr-units -- new-addr }
+    addr-units ALLOCATE THROW { new-addr }
+    addr new-addr addr-units MOVE
+    new-addr
+;
