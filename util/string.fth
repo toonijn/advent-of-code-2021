@@ -40,6 +40,14 @@
     DROP
 ;
 
+: cstr-length ( addr -- length )
+    0 SWAP
+    BEGIN
+    SWAP 1 + SWAP 1 CHARS +  
+    DUP C@ 0 = UNTIL
+    DROP
+;
+
 : starts-with { haystack_addr haystack_length needle_addr needle_length }
     needle_length haystack_length > IF
         false
