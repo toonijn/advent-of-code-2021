@@ -3,19 +3,19 @@ needs ../util/io.fth
 needs ../util/grid.fth
 
 100000 CONSTANT polymer-size
-256 256 * CHARS ALLOCATE THROW CONSTANT rules
-rules 256 256 * CHARS 0 FILL
+26 26 * CHARS ALLOCATE THROW CONSTANT rules
+rules 26 26 * CHARS 0 FILL
 
 : read-rule { addr u -- }
     assert( u 7 = )
-    addr 6 CHARS + c@
-    addr c@
-    addr 1 CHARS + c@ 
-    ( c a b ) 256 * + CHARS rules + c!
+    addr 6 CHARS + c@ [char] A -
+    addr c@ [char] A -
+    addr 1 CHARS + c@ [char] A -
+    ( c a b ) 26 * + CHARS rules + c!
 ;
 
 : get-rule ( a b -- c )
-    256 * + CHARS rules + c@
+    [char] A - SWAP [char] A - SWAP 26 * + CHARS rules + c@ [char] A +
 ;
 
 : apply-rules { src src-u dst -- dst-u }
@@ -51,7 +51,7 @@ rules 256 256 * CHARS 0 FILL
 ;
 
 : lowest { freq }
-    100000000000
+    100000000000000
     256 0 DO
         freq I CELLS + @ DUP 0 <> IF
             MIN
