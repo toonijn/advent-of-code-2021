@@ -107,11 +107,11 @@ switch-stack switch-stack !
     2DROP
 ;
 
-: switch-test ;
+: switch-test
     see switch-test-internal CR
 
-    100 CONSTANT max-line-size
-    max-line-size 2 + CHARS ALLOCATE THROW CONSTANT line-buffer
+    100 { max-line-size }
+    max-line-size 2 + CHARS ALLOCATE THROW { line-buffer }
     line-buffer max-line-size stdin READ-LINE THROW DROP
     line-buffer SWAP switch-test-internal 
 
