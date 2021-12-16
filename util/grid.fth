@@ -34,6 +34,15 @@
     grid grid-data row r * col c * + CELLS +
 ;
 
+: grid-fill { grid v -- }
+    grid grid-shape { rows cols }
+    rows 0 DO
+        cols 0 DO
+            v grid J I grid-addr !
+        LOOP
+    LOOP
+;
+
 : grid-shallow-copy { src }
     5 CELLS ALLOCATE THROW { dst }
     src dst 5 CELLS MOVE
