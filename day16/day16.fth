@@ -76,7 +76,7 @@ needs ../util/switch.fth
             ."  Operator 0: " DUP . CR
             CHARS OVER + { end }
             RECURSE
-
+            ( bits v )
             BEGIN
             OVER end <> WHILE
                 SWAP RECURSE ROT SWAP .S CR operator EXECUTE
