@@ -61,6 +61,14 @@
     THEN
 ;
 
-: parse-number ( addr length )
-    0 0 2SWAP >NUMBER 2DROP DROP
+: parse-number ( addr length -- n )
+    assert( DUP 0 > )
+    OVER c@ [char] - = IF
+        1 -
+        SWAP 1 CHARS + SWAP
+        -1
+    ELSE
+        1
+    THEN
+    ROT ROT 0 0 2SWAP >NUMBER 2DROP DROP *
 ;
