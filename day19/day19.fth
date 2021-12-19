@@ -23,7 +23,7 @@ needs ../util/switch.fth
 
 : apply-permutation { p perm -- p }
     p point-unpack
-    perm 3 > IF SWAP THEN
+    perm 2 > IF SWAP THEN
     SWITCH perm 3 MOD ['] =
     S-CASE 1 S-IF ROT
     S-CASE 2 S-IF ROT ROT
@@ -131,10 +131,15 @@ needs ../util/switch.fth
     ABS SWAP ABS MAX SWAP ABS MAX
 ;
 
+: distance-0 ( p1 p2 -- d )
+    -1 point*s point+ point-unpack
+    ABS SWAP ABS + SWAP ABS +
+;
+
 : scanned-in-range { scanned point }
     FALSE
     scanned scanned-centers vector-FOREACH
-        @ point distance-oo 1000 < OR
+        @ point distance-oo 1000 <= OR
         DUP IF LEAVE THEN
     vector-FOREACH-END
 ;
@@ -214,13 +219,20 @@ needs ../util/switch.fth
         copy I scanned-transform
         \ ." beacon: " copy scanned-beacons vector-last @ .point CR
         scanned copy extend-try-shifts IF
-            ." Permutation: " I . CR
+            \ ." Permutation: " I . CR
             DROP TRUE
             copy scanned-free
             LEAVE
         THEN
         copy scanned-free
     LOOP
+;
+
+: vector-swap { vec a b }
+    vec a vector-addr @
+    vec b vector-addr @
+    vec a vector-addr !
+    vec b vector-addr !
 ;
 
 : solve 
@@ -252,9 +264,24 @@ depth 0 = IF
 
     assert( scanners vector-size > )
     REPEAT
-    .S CR
     
+    ." Beacons: " connected scanned-beacons vector-size . CR
 
+    connected scanned-centers { centers }
+    0
+    centers vector-FOREACH @ { a }
+    centers vector-FOREACH @ { b }
+        a b distance-0 MAX
+    vector-FOREACH-END
+    vector-FOREACH-END
+
+    ." Scanner distance: " . CR
+    ." Scanners: " 
+    centers vector-FOREACH 
+        @ .point ."  "
+    vector-FOREACH-END
+    CR 
+    
 bye
     THEN
 ;
