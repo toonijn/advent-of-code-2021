@@ -43,6 +43,17 @@
     LOOP
 ;
 
+: grid-copy { src dst -- }
+    src grid-shape { rows cols }
+    dst grid-shape assert( cols = SWAP rows = AND )
+    rows 0 DO
+        cols 0 DO
+            src J I grid-addr @
+            dst J I grid-addr !
+        LOOP
+    LOOP
+;
+
 : grid-shallow-copy { src }
     5 CELLS ALLOCATE THROW { dst }
     src dst 5 CELLS MOVE
