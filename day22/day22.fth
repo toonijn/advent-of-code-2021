@@ -1,8 +1,11 @@
 needs ../util/string.fth
 needs ../util/io.fth
 needs ../util/custom-stack.fth
+needs ../util/switch.fth
+needs ../util/vector.fth
 
-10000000 CONSTANT MAX-SIZE
+100000 CONSTANT MAX-SIZE
+
 
 : cube-x-set { cube ( xmin xmax ) -- }
     cube 1 CELLS + !
@@ -34,6 +37,11 @@ needs ../util/custom-stack.fth
     cube
 ;
 
+: cube-clone ( cube -- cube )
+    cube-init-empty
+    SWAP OVER 6 CELLS MOVE
+;
+
 : cube-x { cube -- xmin xmax }
     cube 0 CELLS + @
     cube 1 CELLS + @
@@ -49,6 +57,19 @@ needs ../util/custom-stack.fth
     cube 5 CELLS + @
 ;
 
+: cube-lit { cube -- lit }
+    cube cube-x SWAP - 1 +
+    cube cube-y SWAP - 1 + 
+    cube cube-z SWAP - 1 + 
+    * *
+;
+
+: .cube { cube -- }
+    ." [( " cube cube-x SWAP . . ." )"
+    ." ( " cube cube-y SWAP . . ." )"
+    ." ( " cube cube-z SWAP . . ." )]"  
+;
+
 : interval-disjoint { 1min 1max 2min 2max -- if-disjoint }
     2max 1min < 1max 2min < OR
 ;
@@ -59,10 +80,6 @@ needs ../util/custom-stack.fth
 ;
 
 
-: cube-y-set { cube ( ymin ymax ) -- }
-    cube 3 CELLS + @
-    cube 2 CELLS + @
-;
 : cube-disjoint { c1 c2 -- if-disjoint }
     c1 cube-x c2 cube-x interval-disjoint
     c1 cube-y c2 cube-y interval-disjoint
@@ -78,51 +95,133 @@ needs ../util/custom-stack.fth
 ;
 
 : cube-neighbors-internal-set { axis offset -- }
-    custom-stack> { src }
     custom-stack> { dst }
+    custom-stack> { src }
     SWITCH offset ['] =
     S-CASE -1 S-IF
-        MAX-SIZE src offset 2 * @
+        MAX-SIZE NEGATE src axis 2 * CELLS + @ 1 -
     S-CASE 0 S-IF
-        src offset 2 * @
-        src offset 2 * 1 + @
+        src axis 2 * CELLS + @
+        src axis 2 * 1 + CELLS + @
     S-CASE 1 S-IF
-        src offset 2 * 1 + @ MAX-SIZE
+        src axis 2 * 1 + CELLS + @ 1 + MAX-SIZE
     S-END
+    dst axis 2 * 1 + CELLS + !
+    dst axis 2 * CELLS + !
+    src >custom-stack
+    dst >custom-stack
+;
 
-    dst offset 2 * 1 + CELLS + !
-    dst offset 2 * CELLS + !
+: cube-neighbors-internal-set-full { k }
+    0 k 3 MOD 1 - cube-neighbors-internal-set
+    1 k 3 / 3 MOD 1 - cube-neighbors-internal-set
+    2 k 9 / 3 MOD 1 - cube-neighbors-internal-set
 ;
 
 : cube-neighbors-foreach ( cube -- )
-    POSTPONE cube-init-empty POSTPONE >custom-stack
     POSTPONE >custom-stack
-    2 - 1 POSTPONE LITERAL POSTPONE LITERAL POSTPONE DO 
-    0 POSTPONE LITERAL POSTPONE I POSTPONE cube-neighbors-internal-set
-    2 - 1 POSTPONE LITERAL POSTPONE LITERAL POSTPONE DO
-    1 POSTPONE LITERAL POSTPONE I POSTPONE cube-neighbors-internal-set
-    2 - 1 POSTPONE LITERAL POSTPONE LITERAL POSTPONE DO
-    2 POSTPONE LITERAL POSTPONE I POSTPONE cube-neighbors-internal-set
-
-;
+    POSTPONE cube-init-empty POSTPONE >custom-stack
+    0 27 POSTPONE LITERAL POSTPONE LITERAL POSTPONE DO 
+    POSTPONE I 13 POSTPONE LITERAL POSTPONE <> POSTPONE IF 
+    POSTPONE I POSTPONE cube-neighbors-internal-set-full
+    POSTPONE custom-stack-peek
+; immediate
 
 : cube-neighbors-foreach-end
-    POSTPONE LOOP POSTPONE LOOP POSTPONE LOOP
-    POSTPONE custom-stack-drop POSTPONE custom-stack-drop
+    POSTPONE THEN
+    POSTPONE LOOP
+    POSTPONE custom-stack> POSTPONE free POSTPONE THROW POSTPONE custom-stack-drop
+; immediate
+
+: add-cube { cubes cube is-on }
+    cubes vector-size 27 + vector-init { new-cubes }
+    is-on IF
+        new-cubes cube vector-add
+    THEN
+    cubes vector-foreach
+        @ { existing }
+        existing cube cube-disjoint IF
+            new-cubes existing vector-add
+        ELSE
+            cube cube-neighbors-foreach
+                { n }
+                \ n .cube ."  <?> " existing .cube CR
+                existing n cube-disjoint INVERT IF
+                    \ n .cube ."  <-> " existing .cube CR
+                    existing n cube-intersection { r }
+                    new-cubes r vector-add
+                THEN
+            cube-neighbors-foreach-end
+            existing FREE THROW
+        THEN
+    vector-foreach-end
+    cubes vector-clear
+    new-cubes vector-foreach
+        @ cubes SWAP vector-add
+    vector-foreach-end
+;
+
+: interval-contains { lmin lmax smin smax -- if-contains }
+    lmin smin <= smax lmax <= AND
+;
+
+: cube-contains { large small -- if-contains }
+    large cube-x small cube-x interval-contains
+    large cube-y small cube-y interval-contains
+    large cube-z small cube-z interval-contains
+    AND AND
+;
+
+-50 50 2DUP 2DUP cube-init CONSTANT max-cube
+
+: total-lit { cubes }
+    0
+    cubes vector-foreach
+        @ cube-lit +
+    vector-foreach-end
+;
+
+: parse-line { cubes1 cubes2 addr u -- cubes1 cubes2 }
+    addr u bl split assert( 2 = )
+    [char] , split assert( 3 = )
+    [char] . split assert( 3 = )
+    parse-number { zmax }
+    2DROP
+    2 - SWAP 2 CHARS + SWAP
+    parse-number { zmin }
+    [char] . split assert( 3 = )
+    parse-number { ymax }
+    2DROP
+    2 - SWAP 2 CHARS + SWAP
+    parse-number { ymin }
+    [char] . split assert( 3 = )
+    parse-number { xmax }
+    2DROP
+    2 - SWAP 2 CHARS + SWAP
+    parse-number { xmin }
+    DROP 1 CHARS + c@ [char] n = { is-on }
+    xmin xmax ymin ymax zmin zmax
+    cube-init { cube }
+
+    cubes2 cube cube-clone is-on add-cube
+    max-cube cube cube-contains if
+        cubes1 cube is-on add-cube
+    THEN
+
+    cubes1 cubes2
 ;
 
 : solve
 depth 0 = IF
 
+    101 vector-init
+    101 vector-init
     200 ['] parse-line read-lines
 
-    BEGIN
-    DUP 1000 < WHILE
-    2SWAP
-    make-move
-    REPEAT
+    SWAP
+    ." star1: " total-lit . CR
+    ." star2: " total-lit . CR
 
-    2 PICK  die-roll-count * . CR
 
 bye
     THEN

@@ -60,12 +60,13 @@ needs list.fth
 ;
 
 : vector-FOREACH
-    POSTPONE DUP POSTPONE >custom-stack POSTPONE vector-size 0 POSTPONE LITERAL POSTPONE DO
+    POSTPONE DUP POSTPONE >custom-stack POSTPONE vector-size POSTPONE DUP POSTPONE 0> POSTPONE IF 0 POSTPONE LITERAL POSTPONE DO
         POSTPONE custom-stack-peek POSTPONE I POSTPONE vector-addr
 ; immediate
 
 : vector-FOREACH-END
     POSTPONE LOOP POSTPONE custom-stack-drop
+    POSTPONE ELSE POSTPONE DROP POSTPONE THEN
 ; immediate
 
 : vector-find { vec val eq -- }
@@ -80,6 +81,10 @@ needs list.fth
 : vector-pop { vec -- v }
     vec vector-last @
     -1 vec +!
+;
+
+: vector-clear { vec -- }
+    0 vec !
 ;
 
 : .vector { vec }
