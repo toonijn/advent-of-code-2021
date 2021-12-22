@@ -1,4 +1,5 @@
 needs custom-stack.fth
+needs list.fth
 
 : vector-init ( initial-size -- addr )
     3 CELLS ALLOCATE THROW { vec }
@@ -89,22 +90,34 @@ needs custom-stack.fth
     ." ]"
 ;
 
+: vector-sort  ( vec less-than -- )
+    SWAP DUP vector-data SWAP vector-size ROT
+    sort
+;
+
 : vector-test
     3 vector-init { vec }
 
-    vec 0 vector-add
     vec 1 vector-add
     vec 2 vector-add
-    vec 3 vector-add
-    vec 4 vector-add
+    vec 5 vector-add
+    vec 10 vector-add
+    vec 17 vector-add
 
     assert( vec vector-size 5 = )
 
     vec vector-FOREACH
-        assert( vec I vector-addr @ I = )
-        assert( @ I = )
+        vec I vector-addr
+        assert( OVER = )
+        assert( @ I I * 1 + = )
     vector-FOREACH-END
 
-    assert( vec 2 ['] = vector-find 2 = )
+    assert( vec 5 ['] = vector-find 2 = )
+
+    vec ['] > vector-sort
+
+    vec vector-FOREACH
+        assert( @ 4 I - DUP * 1 + = )
+    vector-FOREACH-END
 ;
 
