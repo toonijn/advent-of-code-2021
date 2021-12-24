@@ -170,6 +170,42 @@ CREATE COST
     THEN LOOP
 ;
 
+: pos-get-of-type { pos type -- a b }
+    19 0 DO
+        pos I pos-get-room type = IF
+            I
+            DUP 7 > IF 1 - THEN
+            DUP 5 > IF 1 - THEN
+            DUP 3 > IF 1 - THEN
+            DUP 1 > IF 1 - THEN
+        THEN
+    LOOP
+;
+
+
+40045167 CELLS ALLOCATE THROW CONSTANT ALREADY_SEEN
+ALREADY_SEEN 40045167 CELLS 0 FILL
+
+: pos-to-key { pos -- key }
+    0
+    pos 1 pos-get-of-type 15 * + SWAP 225 * +
+    pos 2 pos-get-of-type 15 * + SWAP 225 * +
+    pos 3 pos-get-of-type 15 * + SWAP 225 * +
+    pos 4 pos-get-of-type 15 * + SWAP 225 * +
+;
+
+: has-seen { pos -- if }
+    pos pos-to-key { key }
+    key 6 RSHIFT CELLS ALREADY_SEEN + @
+    key 63 AND RSHIFT 1 AND 0<>
+;
+
+: set-seen { pos -- }
+    pos pos-to-key { key }
+    key 6 RSHIFT CELLS ALREADY_SEEN + DUP @
+    1 key 63 AND LSHIFT OR SWAP !
+;
+
 : dijkstra-callback { todo pos start to length -- todo pos start  }
     pos pos-clone { new }
     pos start pos-get-room { type }
@@ -177,11 +213,6 @@ CREATE COST
     new to type pos-set-room
     COST type CELLS + @ length * new CELL+ +!
     \ start . ." -> " to . CR
-    new pos-has-won IF
-        new .pos CR
-        new CELL+ @ . CR
-        1 throw
-    THEN 
     todo new heap-add
     todo pos start
 ;
@@ -190,22 +221,30 @@ CREATE COST
     100000000 ['] pos-< heap-init { todo }
     todo pos heap-add
     0
-    BEGIN todo heap-is-empty INVERT WHILE
-        todo heap-pop { pos }
-        todo pos
-        19 0 DO
-            I
-            \ ." Next start" CR
-            pos I ['] dijkstra-callback find-moves
-            DROP
-        LOOP
-        2DROP
-        \ pos .pos
-        1 + DUP 10000 MOD 0= IF
-        pos CELL+ @ . CR pos .pos CR CR
+    BEGIN todo heap-is-empty INVERT IF
+        todo heap-pop 
+        DUP pos-has-won INVERT
+    THEN WHILE { pos }
+        pos has-seen INVERT IF
+            pos set-seen
+            todo pos
+            19 0 DO
+                I
+                \ ." Next start" CR
+                pos I ['] dijkstra-callback find-moves
+                DROP
+            LOOP
+            2DROP
+            \ pos .pos
+            1 + DUP 10000 MOD 0= IF
+            pos CELL+ @ . CR pos .pos CR CR
+            THEN
         THEN
         pos pos-free
     REPEAT
+    
+    DUP .pos CR
+    DUP CELL+ @ . CR 
 ;
 
 : solve
