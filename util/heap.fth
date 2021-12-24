@@ -49,7 +49,7 @@
 : heap-bubble-down { heap index -- }
     heap heap-size { size }
     index 2 * size = IF
-        heap index 2 * heap-swap-with-parent?
+        heap index 2 * heap-swap-with-parent? DROP
     ELSE
         index 2 * size < IF
             heap index 2 * heap

@@ -65,8 +65,9 @@ needs list.fth
 ; immediate
 
 : vector-FOREACH-END
-    POSTPONE LOOP POSTPONE custom-stack-drop
+    POSTPONE LOOP
     POSTPONE ELSE POSTPONE DROP POSTPONE THEN
+    POSTPONE custom-stack-drop
 ; immediate
 
 : vector-find { vec val eq -- }
