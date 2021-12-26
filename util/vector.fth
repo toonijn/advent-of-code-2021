@@ -79,6 +79,14 @@ needs list.fth
     vector-FOREACH-END
 ;
 
+: vector-fold { vec reducer -- fold }
+    assert( vec vector-size 0 > )
+    vec 0 vector-addr @
+    vec vector-size 1 2DUP > IF DO
+        vec I vector-addr @ reducer EXECUTE
+    LOOP ELSE 2DROP THEN
+;
+
 : vector-pop { vec -- v }
     vec vector-last @
     -1 vec +!
